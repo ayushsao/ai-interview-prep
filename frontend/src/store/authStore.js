@@ -118,7 +118,9 @@
 import { create } from "zustand";
 import axios from "axios";
 
-const API_URL = "https://ai-interview-prep-a5xy.onrender.com/api/auth";
+// const API_URL = "https://ai-interview-prep-a5xy.onrender.com/api/auth";
+const API_URL = `${import.meta.env.VITE_API_URL}/auth`;
+
 
 export const useAuthStore = create((set) => ({
   user: null,
