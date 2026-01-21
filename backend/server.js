@@ -62,19 +62,28 @@ const app = express();
  * =====================
  */
 
-// ✅ CORS – FIXED for Vercel + Render
+// ✅ CORS – FINAL FIX (Vercel + Render)
+// app.use(cors({
+//   origin: [
+//     'https://ai-interview-prep-eight-phi.vercel.app',
+//     'http://localhost:5173'
+//   ],
+//   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+//   credentials: true
+// }));
 app.use(cors({
   origin: [
     'https://ai-interview-prep-one-rosy.vercel.app/',
-    'http://localhost:5173' // local dev
+    'http://localhost:5173'
   ],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   credentials: true
 }));
 
-// Handle preflight requests
 app.options('*', cors());
 
+
+// app.options('*', cors());
 app.use(express.json());
 
 /**
@@ -107,7 +116,7 @@ app.use('/api/interviews', interviewRoutes);
 app.use('/api/questions', questionRoutes);
 app.use('/api/progress', progressRoutes);
 
-// Health check (IMPORTANT for debugging)
+// ✅ Health check
 app.get('/api/health', (req, res) => {
   res.json({
     status: 'ok',
@@ -134,3 +143,4 @@ const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
 });
+
