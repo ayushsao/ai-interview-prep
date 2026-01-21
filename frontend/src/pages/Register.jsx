@@ -239,8 +239,16 @@ function Register() {
     //   targetRole: formData.targetRole,
     //   experienceLevel: formData.experienceLevel,
     // });
-    const result = await register({
-  name: formData.name, // ✅ backend expects this
+//     const result = await register({
+//   name: formData.name, // ✅ backend expects this
+//   email: formData.email,
+//   password: formData.password,
+//   targetRole: formData.targetRole,
+//   experienceLevel: formData.experienceLevel,
+// });
+
+ const result=await register({
+  name: formData.name,     // ✅ EXACT MATCH
   email: formData.email,
   password: formData.password,
   targetRole: formData.targetRole,
