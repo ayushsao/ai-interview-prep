@@ -1,4 +1,10 @@
-const express = require('express');
+} catch (err) {
+  console.error('Registration error:', err);
+  res.status(500).json({ error: 'Registration failed', details: err.message || err });
+}} catch (err) {
+  console.error('Registration error:', err);
+  res.status(500).json({ error: 'Registration failed', details: err.message || err });
+}const express = require('express');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { body, validationResult } = require('express-validator');
