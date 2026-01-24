@@ -75,25 +75,6 @@ A full-stack MERN application that helps users practice mock interviews with AI-
    cp .env.example .env
    ```
 
-4. Update `.env` with your credentials:
-   ```env
-   MONGODB_URI=mongodb://localhost:27017/interview-prep
-   JWT_SECRET=your-secret-key
-   OPENAI_API_KEY=your-openai-api-key
-   PORT=5000
-   FRONTEND_URL=http://localhost:5173
-   ```
-
-5. Seed the database with sample questions:
-   ```bash
-   npm run seed
-   ```
-
-6. Start the server:
-   ```bash
-   npm run dev
-   ```
-
 ### Frontend Setup
 
 1. Navigate to frontend directory:
