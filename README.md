@@ -70,11 +70,6 @@ A full-stack MERN application that helps users practice mock interviews with AI-
    npm install
    ```
 
-3. Create `.env` file from example:
-   ```bash
-   cp .env.example .env
-   ```
-
 ### Frontend Setup
 
 1. Navigate to frontend directory:
