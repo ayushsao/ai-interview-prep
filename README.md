@@ -106,39 +106,6 @@ A full-stack MERN application that helps users practice mock interviews with AI-
    npm install
    ```
 
-3. Start the development server:
-   ```bash
-   npm run dev
-   ```
-
-4. Open http://localhost:5173 in your browser
-
-## 📡 API Endpoints
-
-### Authentication
-- `POST /api/auth/register` - Register new user
-- `POST /api/auth/login` - Login user
-- `GET /api/auth/me` - Get current user
-- `PUT /api/auth/profile` - Update profile
-
-### Interviews
-- `POST /api/interviews/start` - Start new interview session
-- `POST /api/interviews/:id/answer` - Submit answer and get AI feedback
-- `POST /api/interviews/:id/complete` - Complete interview session
-- `GET /api/interviews/history` - Get user's interview history
-- `GET /api/interviews/:id` - Get session details
-
-### Questions
-- `GET /api/questions` - Get questions by category
-- `GET /api/questions/random` - Get random questions
-- `POST /api/questions/generate` - Generate AI questions
-
-### Progress
-- `GET /api/progress` - Get user progress
-- `GET /api/progress/analytics` - Get detailed analytics
-- `GET /api/progress/insights` - Get AI-powered insights
-- `GET /api/progress/achievements` - Get achievements
-- `GET /api/progress/weekly` - Get weekly activity
 
 ## 🎨 Key Pages
 
@@ -151,16 +118,7 @@ A full-stack MERN application that helps users practice mock interviews with AI-
 7. **History** - Browse past interview sessions
 8. **Profile** - Update personal information and preferences
 
-## 🔒 Environment Variables
 
-### Backend (.env)
-```env
-MONGODB_URI=your-mongodb-connection-string
-JWT_SECRET=your-jwt-secret
-OPENAI_API_KEY=your-openai-api-key
-PORT=5000
-FRONTEND_URL=http://localhost:5173
-```
 
 ## 🤖 AI Integration
 
