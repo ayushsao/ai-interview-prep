@@ -1,12 +1,33 @@
 import axios from 'axios';
 
-const API_URL = import.meta.env.VITE_API_URL || '/api';
+// Determine API URL based on environment
+const getApiUrl = () => {
+  // Check for environment variable first
+  if (import.meta.env.VITE_API_URL) {
+    return import.meta.env.VITE_API_URL;
+  }
+  
+  // In production (Vercel), use the backend URL
+  if (import.meta.env.PROD) {
+    // Update this with your actual Render backend URL
+    return 'https://ai-interview-prep-a5xy.onrender.com/api';
+  }
+  
+  // In development, use local proxy
+  return '/api';
+};
+
+const API_URL = getApiUrl();
+
+console.log('API URL:', API_URL); // Debug log
 
 const api = axios.create({
   baseURL: API_URL,
   headers: {
     'Content-Type': 'application/json'
-  }
+  },
+  timeout: 30000, // 30 second timeout
+  withCredentials: false // Set to true if using cookies
 });
 
 // Add auth token to requests
