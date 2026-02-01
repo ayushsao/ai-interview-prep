@@ -185,14 +185,12 @@
 //   },
 // }));
 import { create } from "zustand";
-import axios from "axios";
-
-// 🔥 ENV-BASED API URL (FINAL FIX)
-const API_URL = `${import.meta.env.VITE_API_URL}/auth`;
+import { authAPI } from "../services/api";
 
 export const useAuthStore = create((set) => ({
-  user: null,
+  user: JSON.parse(localStorage.getItem("user") || "null"),
   token: localStorage.getItem("token"),
+  isAuthenticated: !!localStorage.getItem("token"),
   isLoading: false,
   error: null,
 
@@ -202,13 +200,15 @@ export const useAuthStore = create((set) => ({
     try {
       set({ isLoading: true, error: null });
 
-      const res = await axios.post(`${API_URL}/register`, data);
+      const res = await authAPI.register(data);
 
       localStorage.setItem("token", res.data.token);
+      localStorage.setItem("user", JSON.stringify(res.data.user));
 
       set({
         user: res.data.user,
         token: res.data.token,
+        isAuthenticated: true,
         isLoading: false,
       });
 
@@ -229,13 +229,15 @@ export const useAuthStore = create((set) => ({
     try {
       set({ isLoading: true, error: null });
 
-      const res = await axios.post(`${API_URL}/login`, data);
+      const res = await authAPI.login(data);
 
       localStorage.setItem("token", res.data.token);
+      localStorage.setItem("user", JSON.stringify(res.data.user));
 
       set({
         user: res.data.user,
         token: res.data.token,
+        isAuthenticated: true,
         isLoading: false,
       });
 
@@ -247,5 +249,11 @@ export const useAuthStore = create((set) => ({
       });
       return { success: false };
     }
+  },
+
+  logout: () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    set({ user: null, token: null, isAuthenticated: false });
   },
 }));

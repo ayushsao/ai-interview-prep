@@ -3,7 +3,7 @@ const InterviewSession = require('../models/InterviewSession');
 const Question = require('../models/Question');
 const Progress = require('../models/Progress');
 const auth = require('../middleware/auth');
-const { generateFeedback } = require('../services/aiService');
+const { generateFeedback, generateQuestions } = require('../services/aiService');
 
 const router = express.Router();
 
@@ -12,17 +12,64 @@ router.post('/start', auth, async (req, res) => {
   try {
     const { type, techStack, difficulty, questionCount = 5 } = req.body;
 
-    // Build query for questions
-    const query = {};
-    if (type && type !== 'mixed') query.category = type;
-    if (difficulty) query.difficulty = difficulty;
-    if (techStack?.length > 0) query.techStack = { $in: techStack };
+    let questions = [];
+    
+    // If tech stack is selected, generate questions using AI
+    if (techStack?.length > 0) {
+      console.log('Generating AI questions for tech stack:', techStack);
+      
+      // Determine category based on type
+      let category = 'technical';
+      if (type === 'hr') {
+        category = 'behavioral';
+      } else if (type === 'mixed') {
+        category = 'mixed technical and behavioral';
+      }
+      
+      // Generate questions using Gemini AI
+      const aiQuestions = await generateQuestions(category, techStack, difficulty, parseInt(questionCount));
+      
+      if (aiQuestions && aiQuestions.length > 0) {
+        questions = aiQuestions.map((q, index) => ({
+          _id: `ai-${Date.now()}-${index}`,
+          question: q.question,
+          category: q.category || category,
+          difficulty: q.difficulty || difficulty,
+          tips: q.tips || [],
+          expectedTopics: q.expectedTopics || [],
+          isAIGenerated: true
+        }));
+        console.log(`Generated ${questions.length} AI questions`);
+      }
+    }
+    
+    // If no AI questions or no tech stack, fetch from database
+    if (questions.length === 0) {
+      const query = {};
+      
+      // Map interview type to question categories
+      if (type && type !== 'mixed') {
+        if (type === 'hr') {
+          query.category = { $in: ['hr', 'behavioral', 'situational'] };
+        } else if (type === 'technical') {
+          query.category = { $in: ['technical', 'coding'] };
+        } else {
+          query.category = type;
+        }
+      }
+      
+      if (difficulty) query.difficulty = difficulty;
 
-    // Get random questions
-    const questions = await Question.aggregate([
-      { $match: query },
-      { $sample: { size: parseInt(questionCount) } }
-    ]);
+      console.log('Query for questions:', JSON.stringify(query));
+
+      // Get random questions from database
+      questions = await Question.aggregate([
+        { $match: query },
+        { $sample: { size: parseInt(questionCount) } }
+      ]);
+
+      console.log(`Found ${questions.length} questions from database`);
+    }
 
     if (questions.length === 0) {
       return res.status(404).json({ error: 'No questions found for the selected criteria' });
@@ -52,7 +99,8 @@ router.post('/start', auth, async (req, res) => {
         question: q.question,
         category: q.category,
         difficulty: q.difficulty,
-        tips: q.tips
+        tips: q.tips,
+        expectedTopics: q.expectedTopics
       }))
     });
   } catch (error) {
@@ -65,7 +113,7 @@ router.post('/start', auth, async (req, res) => {
 router.post('/:sessionId/answer', auth, async (req, res) => {
   try {
     const { sessionId } = req.params;
-    const { questionId, questionText, userAnswer, timeSpent, category } = req.body;
+    const { questionId, questionText, userAnswer, timeSpent, category, expectedTopics } = req.body;
 
     const session = await InterviewSession.findOne({
       _id: sessionId,
@@ -80,20 +128,36 @@ router.post('/:sessionId/answer', auth, async (req, res) => {
       return res.status(400).json({ error: 'Session already completed' });
     }
 
-    // Get question details
-    const question = await Question.findById(questionId);
+    // Check if this is an AI-generated question (ID starts with 'ai-')
+    const isAIGeneratedQuestion = typeof questionId === 'string' && questionId.startsWith('ai-');
+    
+    let question = null;
+    let questionExpectedTopics = expectedTopics || [];
+    
+    // Only try to find in database if it's not an AI-generated question
+    if (!isAIGeneratedQuestion) {
+      try {
+        question = await Question.findById(questionId);
+        if (question) {
+          questionExpectedTopics = question.expectedTopics || [];
+        }
+      } catch (err) {
+        // Ignore invalid ObjectId errors for AI-generated questions
+        console.log('Question not found in database, using provided data');
+      }
+    }
     
     // Generate AI feedback
     const aiFeedback = await generateFeedback(
       questionText,
       category || question?.category || 'general',
       userAnswer,
-      question?.expectedTopics || []
+      questionExpectedTopics
     );
 
-    // Add answer to session
+    // Add answer to session (store questionId as string for AI-generated questions)
     const answer = {
-      question: questionId,
+      question: isAIGeneratedQuestion ? null : questionId,
       questionText,
       userAnswer,
       aiFeedback,
@@ -111,7 +175,7 @@ router.post('/:sessionId/answer', auth, async (req, res) => {
     await session.save();
 
     // Update progress
-    await updateProgress(req.userId, category || question?.category, aiFeedback.overallScore);
+    await updateProgress(req.userId, category || question?.category || 'technical', aiFeedback.overallScore);
 
     res.json({
       feedback: aiFeedback,

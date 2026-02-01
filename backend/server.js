@@ -206,7 +206,7 @@ mongoose
   .then(() => console.log("✅ MongoDB connected"))
   .catch((err) => {
     console.error("❌ MongoDB error:", err);
-    process.exit(1);
+    console.warn("⚠️ Continuing without DB connection. Some routes may fail until MongoDB is available.");
   });
 
 /* ===== ROUTES ===== */
@@ -221,6 +221,4 @@ app.get("/api/health", (req, res) => {
 
 /* ===== START ===== */
 const PORT = process.env.PORT || 10000;
-app.listen(PORT, () =>
-  console.log(`🚀 Server running on port ${PORT}`)
-);
+app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));

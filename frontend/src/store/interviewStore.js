@@ -43,6 +43,7 @@ export const useInterviewStore = create((set, get) => ({
         questionId: currentQuestion.id,
         questionText: currentQuestion.question,
         category: currentQuestion.category,
+        expectedTopics: currentQuestion.expectedTopics || [],
         ...answerData
       });
       

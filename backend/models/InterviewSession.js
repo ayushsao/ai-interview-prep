@@ -4,7 +4,8 @@ const answerSchema = new mongoose.Schema({
   question: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Question',
-    required: true
+    required: false,  // Not required for AI-generated questions
+    default: null
   },
   questionText: {
     type: String,
