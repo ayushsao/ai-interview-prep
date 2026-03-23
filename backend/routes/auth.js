@@ -264,12 +264,13 @@ router.post("/register", async (req, res) => {
     console.log("📩 REGISTER HIT:", req.body);
 
     const { name, email, password, targetRole, experienceLevel } = req.body;
+    const normalizedEmail = (email || '').trim().toLowerCase();
 
-    if (!name || !email || !password) {
+    if (!name || !normalizedEmail || !password) {
       return res.status(400).json({ error: "Name, email and password required" });
     }
 
-    const existingUser = await User.findOne({ email });
+    const existingUser = await User.findOne({ email: normalizedEmail });
     if (existingUser) {
       return res.status(400).json({ error: "Email already registered" });
     }
@@ -278,13 +279,17 @@ router.post("/register", async (req, res) => {
 
     const user = await User.create({
       name,
-      email,
+      email: normalizedEmail,
       password: hashedPassword, // ✅ hashed
       targetRole: targetRole || "",
       experienceLevel: experienceLevel || "fresher",
     });
 
     await Progress.create({ user: user._id });
+
+    if (!process.env.JWT_SECRET) {
+      return res.status(500).json({ error: "Server auth config missing" });
+    }
 
     const token = jwt.sign(
       { userId: user._id },
@@ -316,12 +321,13 @@ router.post("/login", async (req, res) => {
     console.log("📩 LOGIN HIT:", req.body);
 
     const { email, password } = req.body;
+    const normalizedEmail = (email || '').trim().toLowerCase();
 
-    if (!email || !password) {
+    if (!normalizedEmail || !password) {
       return res.status(400).json({ error: "Email and password required" });
     }
 
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ email: normalizedEmail });
     if (!user) {
       return res.status(401).json({ error: "Invalid credentials" });
     }
@@ -329,6 +335,10 @@ router.post("/login", async (req, res) => {
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return res.status(401).json({ error: "Invalid credentials" });
+    }
+
+    if (!process.env.JWT_SECRET) {
+      return res.status(500).json({ error: "Server auth config missing" });
     }
 
     const token = jwt.sign(

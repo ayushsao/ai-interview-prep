@@ -201,13 +201,19 @@ export const useAuthStore = create((set) => ({
       set({ isLoading: true, error: null });
 
       const res = await authAPI.register(data);
+      const token = res.data?.token || res.data?.data?.token;
+      const user = res.data?.user || res.data?.data?.user;
 
-      localStorage.setItem("token", res.data.token);
-      localStorage.setItem("user", JSON.stringify(res.data.user));
+      if (!token || !user) {
+        throw new Error('Invalid registration response');
+      }
+
+      localStorage.setItem("token", token);
+      localStorage.setItem("user", JSON.stringify(user));
 
       set({
-        user: res.data.user,
-        token: res.data.token,
+        user,
+        token,
         isAuthenticated: true,
         isLoading: false,
       });
@@ -217,8 +223,10 @@ export const useAuthStore = create((set) => ({
       set({
         error:
           err.response?.data?.error ||
+          err.response?.data?.message ||
           err.response?.data?.errors?.[0]?.msg ||
-          "Network Error",
+          err.message ||
+          "Registration failed",
         isLoading: false,
       });
       return { success: false };
@@ -230,13 +238,19 @@ export const useAuthStore = create((set) => ({
       set({ isLoading: true, error: null });
 
       const res = await authAPI.login(data);
+      const token = res.data?.token || res.data?.data?.token;
+      const user = res.data?.user || res.data?.data?.user;
 
-      localStorage.setItem("token", res.data.token);
-      localStorage.setItem("user", JSON.stringify(res.data.user));
+      if (!token || !user) {
+        throw new Error('Invalid login response');
+      }
+
+      localStorage.setItem("token", token);
+      localStorage.setItem("user", JSON.stringify(user));
 
       set({
-        user: res.data.user,
-        token: res.data.token,
+        user,
+        token,
         isAuthenticated: true,
         isLoading: false,
       });
@@ -244,7 +258,11 @@ export const useAuthStore = create((set) => ({
       return { success: true };
     } catch (err) {
       set({
-        error: err.response?.data?.error || "Login failed",
+        error:
+          err.response?.data?.error ||
+          err.response?.data?.message ||
+          err.message ||
+          "Login failed",
         isLoading: false,
       });
       return { success: false };

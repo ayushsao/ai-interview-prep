@@ -4,7 +4,7 @@ import axios from 'axios';
 const getApiUrl = () => {
   // Check for environment variable first
   if (import.meta.env.VITE_API_URL) {
-    return import.meta.env.VITE_API_URL;
+    return import.meta.env.VITE_API_URL.replace(/\/$/, '');
   }
   
   // In production (Vercel), use the backend URL
@@ -19,8 +19,6 @@ const getApiUrl = () => {
 
 const API_URL = getApiUrl();
 
-console.log('API URL:', API_URL); // Debug log
-
 const api = axios.create({
   baseURL: API_URL,
   headers: {
@@ -33,7 +31,8 @@ const api = axios.create({
 // Add auth token to requests
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('token');
-  if (token) {
+  const isAuthEndpoint = config.url?.includes('/auth/login') || config.url?.includes('/auth/register');
+  if (token && !isAuthEndpoint) {
     config.headers.Authorization = `Bearer ${token}`;
   }
   return config;
@@ -43,7 +42,9 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
+    const requestUrl = error.config?.url || '';
+    const isLoginRequest = requestUrl.includes('/auth/login');
+    if (error.response?.status === 401 && !isLoginRequest) {
       localStorage.removeItem('token');
       localStorage.removeItem('user');
       window.location.href = '/login';

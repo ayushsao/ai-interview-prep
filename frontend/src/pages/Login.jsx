@@ -112,7 +112,7 @@ function Login() {
     clearError();
 
     const result = await login({
-      email,
+      email: email.trim().toLowerCase(),
       password,
     });
 
